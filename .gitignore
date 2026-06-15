@@ -1,0 +1,5 @@
+/.idea/
+target/
+!target/site/
+!target/site/jacoco/
+!target/site/jacoco/**
