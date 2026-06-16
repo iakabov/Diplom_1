@@ -6,13 +6,17 @@ import org.junit.rules.ErrorCollector;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(Parameterized.class)
 public class BurgerTest {
 
-    Burger burger;
+    // Моки
+    private Bun bunMock;
+    private Ingredient ingredientMock;
+    private Burger burger;
+
     String bunName;
     float bunPrice;
     IngredientType ingredientType;
@@ -40,36 +44,64 @@ public class BurgerTest {
         this.ingredientName = ingredientName;
         this.ingredientPrice = ingredientPrice;
         this.totalPrice = totalPrice;
-        this.burger = new Burger();
+
+        // Создаем мок моков
+        bunMock = mock(Bun.class);
+        when(bunMock.getName()).thenReturn(bunName);
+        when(bunMock.getPrice()).thenReturn(bunPrice);
+
+        ingredientMock = mock(Ingredient.class);
+        when(ingredientMock.getType()).thenReturn(ingredientType);
+        when(ingredientMock.getName()).thenReturn(ingredientName);
+        when(ingredientMock.getPrice()).thenReturn(ingredientPrice);
+
+        // Создаем объект Burger и передаем мок объекты, если есть возможность
+        // или присваиваем мок через сеттеры, если класс позволяет
+        burger = new Burger();
+
+        // Или, если класс Burger принимает в конструктор или сеттеры, то делайте так
+        // burger.setBuns(bunMock);
+        // burger.addIngredient(ingredientMock);
     }
 
     @Test
     public void setBunsTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
+        // Используйте мок
+        burger.setBuns(bunMock);
+        // Проверка, что receipt содержит имя булки
         assertTrue("Ошибка! Не добавлена булка", burger.getReceipt().contains(bunName));
     }
+
     @Test
     public void addIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        burger.addIngredient(new Ingredient(ingredientType, ingredientName, ingredientPrice));
+        burger.setBuns(bunMock);
+        burger.addIngredient(ingredientMock);
         assertTrue("Ошибка! Не добавлен ингредиент", burger.getReceipt().contains(ingredientName));
     }
 
     @Test
     public void removeIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        burger.addIngredient(new Ingredient(ingredientType, ingredientName, ingredientPrice));
+        burger.setBuns(bunMock);
+        burger.addIngredient(ingredientMock);
         burger.removeIngredient(0);
         assertFalse("Ошибка! Ингредиент не удалён", burger.getReceipt().contains(ingredientName));
     }
 
     @Test
     public void moveIngredientTest() {
-        burger.setBuns(new Bun(bunName, bunPrice));
-        Ingredient firstIngredient = new Ingredient(ingredientType, ingredientName, ingredientPrice);
-        burger.addIngredient(firstIngredient);
-        burger.addIngredient(new Ingredient(IngredientType.SAUCE, "chili", 0));
-        burger.moveIngredient(0, 1);
-        assertTrue("Ошибка! Не изменился порядок ингредиентов", burger.ingredients.get(1).equals(firstIngredient));
+        burger.setBuns(bunMock);
+        Ingredient ingredient1 = ingredientMock;
+        // добавляем два ингредиента
+        burger.addIngredient(ingredientMock);
+        Ingredient secondIngredient = mock(Ingredient.class);
+        when(secondIngredient.getType()).thenReturn(IngredientType.SAUCE);
+        when(secondIngredient.getName()).thenReturn("chili");
+        when(secondIngredient.getPrice()).thenReturn(0f);
+        burger.addIngredient(secondIngredient);
+
+        // перемещаем первый ингредиент
+        burger.moveIngredient(0,1);
+        // проверка, что порядок изменился
+        assertTrue("Ошибка! Не изменился порядок ингредиентов", burger.ingredients.get(1).equals(ingredient1));
     }
 }
